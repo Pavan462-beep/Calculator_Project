@@ -4,5 +4,8 @@ def add(a, b):
 def subtract(a, b):
     return a - b
 
+def multiply(a,b):
+    return a*b
+
 print(add(10,20))
 print(subtract(20,10))
