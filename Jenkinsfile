@@ -33,5 +33,12 @@ pipeline {
             }
         }
 
+        stage('DEV Approval') {
+            steps {
+                input message: 'DEV testing completed. Deploy to QA?', ok: 'Proceed'
+            }
+        }
+
     }
 }
+
