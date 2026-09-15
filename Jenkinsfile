@@ -39,6 +39,12 @@ pipeline {
             }
         }
 
+        stage('Deploy QA') {
+            steps {
+                bat 'powershell -Command "Expand-Archive -Path calculator-build.zip -DestinationPath C:\\CICD\\QA -Force"'
+            }
+        }
+
     }
 }
 
