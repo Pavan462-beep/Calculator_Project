@@ -29,7 +29,81 @@ pipeline {
 
         stage('Deploy DEV') {
             steps {
-                bat 'powershell -Command "Expand-Archive -Path calculator-build.zip -DestinationPath C:\\CICD\\DEV -Force"'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dev-server-credential',
+                        usernameVariable: 'DEV_USERNAME',
+                        passwordVariable: 'DEV_PASSWORD'
+                    )
+                ]) {
+
+                    powershell '''
+                        $username = $env:DEV_USERNAME
+
+                        $password = ConvertTo-SecureString `
+                            $env:DEV_PASSWORD `
+                            -AsPlainText `
+                            -Force
+
+                        $cred = New-Object System.Management.Automation.PSCredential(
+                            $username,
+                            $password
+                        )
+
+                        Write-Host "Copying artifact to DEV server..."
+
+                        Copy-Item `
+                            "calculator-build.zip" `
+                            "\\\\Lab-VM4\\C$\\CICD\\DEV\\calculator-build.zip" `
+                            -Credential $cred `
+                            -Force
+
+                        Write-Host "Artifact copied to Lab-VM4"
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy DEV Application') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dev-server-credential',
+                        usernameVariable: 'DEV_USERNAME',
+                        passwordVariable: 'DEV_PASSWORD'
+                    )
+                ]) {
+
+                    powershell '''
+                        $username = $env:DEV_USERNAME
+
+                        $password = ConvertTo-SecureString `
+                            $env:DEV_PASSWORD `
+                            -AsPlainText `
+                            -Force
+
+                        $cred = New-Object System.Management.Automation.PSCredential(
+                            $username,
+                            $password
+                        )
+
+                        Write-Host "Extracting artifact on DEV server..."
+
+                        Invoke-Command `
+                            -ComputerName Lab-VM4 `
+                            -Credential $cred `
+                            -Authentication Kerberos `
+                            -ScriptBlock {
+
+                                Expand-Archive `
+                                    -Path "C:\\CICD\\DEV\\calculator-build.zip" `
+                                    -DestinationPath "C:\\CICD\\DEV" `
+                                    -Force
+
+                                Write-Host "Calculator deployed to DEV"
+                            }
+                    '''
+                }
             }
         }
 
@@ -47,4 +121,3 @@ pipeline {
 
     }
 }
-
