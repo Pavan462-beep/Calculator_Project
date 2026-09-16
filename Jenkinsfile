@@ -27,6 +27,12 @@ pipeline {
             }
         }
 
+        stage('DEV Approval') {
+            steps {
+                input message: 'Testing completed. Approve deployment to DEV?', ok: 'Deploy to DEV'
+            }
+        }
+
         stage('Deploy DEV') {
             steps {
                 withCredentials([
@@ -50,16 +56,25 @@ pipeline {
                             $password
                         )
 
+                        Write-Host "Connecting to DEV server..."
+
+                        New-PSDrive `
+                            -Name "DEV" `
+                            -PSProvider FileSystem `
+                            -Root "\\\\Lab-VM4\\C$" `
+                            -Credential $cred
+
                         Write-Host "Copying artifact to DEV server..."
 
                         Copy-Item `
                             "calculator-build.zip" `
-                            "\\\\Lab-VM4\\C$\\CICD\\DEV\\calculator-build.zip" `
-                            -Credential $cred `
+                            "DEV:\\CICD\\DEV\\calculator-build.zip" `
                             -Force
 
                         Write-Host "Artifact copied to Lab-VM4"
-                    '''
+
+                        Remove-PSDrive -Name "DEV"
+                    }
                 }
             }
         }
@@ -107,9 +122,9 @@ pipeline {
             }
         }
 
-        stage('DEV Approval') {
+        stage('QA Approval') {
             steps {
-                input message: 'DEV testing completed. Deploy to QA?', ok: 'Proceed'
+                input message: 'DEV testing completed. Approve deployment to QA?', ok: 'Deploy to QA'
             }
         }
 
