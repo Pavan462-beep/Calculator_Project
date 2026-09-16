@@ -74,7 +74,7 @@ pipeline {
                         Write-Host "Artifact copied to Lab-VM4"
 
                         Remove-PSDrive -Name "DEV"
-                    }
+                    '''
                 }
             }
         }
